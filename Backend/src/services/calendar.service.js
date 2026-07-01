@@ -1,11 +1,83 @@
-export const createCalendarEvent =
-async (
-  appointment
+import { google } from "googleapis";
+
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
+);
+
+oauth2Client.setCredentials({
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+});
+
+const calendar = google.calendar({
+  version: "v3",
+  auth: oauth2Client,
+});
+
+export const createCalendarEvent = async (
+  appointment,
+  patientName,
+  doctorName
 ) => {
+  try {
+    const appointmentDate = new Date(
+      appointment.appointmentDate
+    );
 
-  console.log(
-    "Calendar Event Created"
-  );
+    const [hours, minutes] =
+      appointment.startTime
+        .split(":")
+        .map(Number);
 
-  return "event-id";
+    appointmentDate.setHours(
+      hours,
+      minutes,
+      0,
+      0
+    );
+
+    const endDate = new Date(
+      appointmentDate
+    );
+
+    endDate.setMinutes(
+      endDate.getMinutes() + 30
+    );
+
+    const event = {
+      summary: `Appointment with Dr. ${doctorName}`,
+      description: `
+Patient: ${patientName}
+
+Symptoms:
+${appointment.symptoms}
+`,
+      start: {
+        dateTime:
+          appointmentDate.toISOString(),
+        timeZone: "Asia/Kolkata",
+      },
+      end: {
+        dateTime:
+          endDate.toISOString(),
+        timeZone: "Asia/Kolkata",
+      },
+    };
+
+    const response =
+      await calendar.events.insert({
+        calendarId: "primary",
+        resource: event,
+      });
+
+    return response.data.id;
+  } catch (error) {
+    console.log(
+      "Google Calendar Error:",
+      error.message
+    );
+
+    return null;
+  }
 };

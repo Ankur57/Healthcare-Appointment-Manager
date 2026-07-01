@@ -49,3 +49,54 @@ ${symptoms}
     };
   }
 };
+
+export const generatePostVisitSummary =
+  async (notes) => {
+    try {
+      const prompt = `
+Convert these clinical notes into a patient-friendly summary.
+
+Return ONLY valid JSON.
+
+{
+  "summary":"",
+  "medicationSchedule":"",
+  "followUpSteps":""
+}
+
+Notes:
+${notes}
+`;
+
+      const result =
+        await model.generateContent(
+          prompt
+        );
+
+      const response =
+        result.response.text();
+
+      const cleaned =
+        response
+          .replace(
+            /```json/g,
+            ""
+          )
+          .replace(
+            /```/g,
+            ""
+          )
+          .trim();
+
+      return JSON.parse(cleaned);
+    } catch (error) {
+      console.log(error);
+
+      return {
+        summary:
+          "Summary unavailable",
+        medicationSchedule: "",
+        followUpSteps: "",
+      };
+    }
+  };

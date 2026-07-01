@@ -8,6 +8,8 @@ import {
 from "../services/ai.service.js"
 import {sendEmail} from "../services/email.service.js"
 
+import { createCalendarEvent } from "../services/calendar.service.js";
+
 export const createAppointment =
 async (req, res) => {
 
@@ -63,9 +65,11 @@ async (req, res) => {
           doctorId,
         appointmentDate,
         startTime,
+        endTime,
         symptoms,
         aiPreVisitSummary:aiSummary  
       });
+
       await sendEmail(
         patient.email,
         "Appointment Booked",
@@ -78,6 +82,23 @@ async (req, res) => {
       ${startTime}</p>
       `
       );
+
+      try {
+        const eventId =
+          await createCalendarEvent(
+            appointment
+          );
+
+        appointment.googleEventId =
+          eventId;
+
+        await appointment.save();
+      } catch (error) {
+        console.log(
+          "Calendar Error",
+          error
+        );
+  }
 
     return res.status(201).json({
       success: true,
@@ -149,7 +170,7 @@ export const cancelAppointment =
       await appointment.save();
 
       const patient = req.user;
-      
+
       await sendEmail(
         patient.email,
         "Appointment Cancelled",

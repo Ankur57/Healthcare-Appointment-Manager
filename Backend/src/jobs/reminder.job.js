@@ -4,7 +4,7 @@ cron.schedule(
   "0 * * * *",
   () => {
     console.log(
-      "Sending reminders"
+      "Checking reminders..."
     );
   }
 );

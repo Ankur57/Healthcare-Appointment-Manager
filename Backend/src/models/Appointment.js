@@ -21,7 +21,10 @@ const appointmentSchema =
 
       startTime: String,
 
-      endTime: String,
+      endTime: {
+        type: String,
+        required: true,
+      },
 
       status: {
         type: String,
@@ -41,7 +44,13 @@ const appointmentSchema =
         suggestedQuestions: [String]
       },
 
-      postVisitNotes: String,
+      postVisitNotes: {
+        type: String,
+      },
+
+      prescription: {
+        type: String,
+      },
 
       aiPostVisitSummary: {
         summary: String,
@@ -61,6 +70,7 @@ const appointmentSchema =
     appointmentDate: 1,
     startTime: 1
   },
+  
   {
     unique: true
   }
