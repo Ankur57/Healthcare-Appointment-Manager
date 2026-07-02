@@ -18,7 +18,9 @@ const calendar = google.calendar({
 export const createCalendarEvent = async (
   appointment,
   patientName,
-  doctorName
+  doctorName,
+  patientEmail,
+  doctorEmail
 ) => {
   try {
     const appointmentDate = new Date(
@@ -46,12 +48,12 @@ export const createCalendarEvent = async (
     );
 
     const event = {
-      summary: `Appointment with Dr. ${doctorName}`,
+      summary: `Consultation: ${patientName} & Dr. ${doctorName}`,
       description: `
 Patient: ${patientName}
 
 Symptoms:
-${appointment.symptoms}
+${appointment.symptoms || "None provided"}
 `,
       start: {
         dateTime:
@@ -63,12 +65,17 @@ ${appointment.symptoms}
           endDate.toISOString(),
         timeZone: "Asia/Kolkata",
       },
+      attendees: [
+        { email: patientEmail },
+        { email: doctorEmail },
+      ]
     };
 
     const response =
       await calendar.events.insert({
         calendarId: "primary",
         resource: event,
+        sendUpdates: "all",
       });
 
     return response.data.id;

@@ -21,10 +21,7 @@ const appointmentSchema =
 
       startTime: String,
 
-      endTime: {
-        type: String,
-        required: true,
-      },
+      endTime: String,
 
       status: {
         type: String,

@@ -2,9 +2,8 @@ import {
   Navigate,
 } from "react-router-dom";
 
-import {
-  useAuth,
-} from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
+import { FullPageLoader } from "../components/ui/Loader";
 
 function ProtectedRoute({
   children,
@@ -16,11 +15,7 @@ function ProtectedRoute({
   } = useAuth();
 
   if (loading)
-    return (
-      <div>
-        Loading...
-      </div>
-    );
+    return <FullPageLoader />;
 
   if (!user)
     return (

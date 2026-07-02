@@ -19,8 +19,12 @@ async (req, res) => {
       doctorId,
       appointmentDate,
       startTime,
+      endTime,
       symptoms
     } = req.body;
+
+    const normalizedDate = new Date(appointmentDate);
+    normalizedDate.setUTCHours(0, 0, 0, 0);
 
     const doctor =
       await Doctor.findById(
@@ -38,7 +42,7 @@ async (req, res) => {
     const existing =
       await Appointment.findOne({
         doctor: doctorId,
-        appointmentDate,
+        appointmentDate: normalizedDate,
         startTime,
         status: "BOOKED"
       });
@@ -63,42 +67,81 @@ async (req, res) => {
           req.user._id,
         doctor:
           doctorId,
-        appointmentDate,
+        appointmentDate: normalizedDate,
         startTime,
         endTime,
         symptoms,
         aiPreVisitSummary:aiSummary  
       });
 
+      // Fetch Doctor user for email and calendar
+      const User = (await import("../models/User.js")).default;
+      const doctorUser = await User.findById(doctor.user);
+
+      // Fetch Admins for notifications
+      const admins = await User.find({ role: "admin" });
+
+      // 1. Email Patient
       await sendEmail(
         patient.email,
-        "Appointment Booked",
+        "Appointment Booked Successfully",
         `
       <h2>Appointment Confirmed</h2>
-      <p>Date:
-      ${appointmentDate}</p>
-
-      <p>Time:
-      ${startTime}</p>
+      <p>Your appointment with Dr. ${doctorUser?.name || "Doctor"} has been booked.</p>
+      <p>Date: ${new Date(appointmentDate).toDateString()}</p>
+      <p>Time: ${startTime}</p>
       `
       );
 
-      try {
-        const eventId =
-          await createCalendarEvent(
-            appointment
-          );
-
-        appointment.googleEventId =
-          eventId;
-
-        await appointment.save();
-      } catch (error) {
-        console.log(
-          "Calendar Error",
-          error
+      // 2. Email Doctor
+      if (doctorUser && doctorUser.email) {
+        await sendEmail(
+          doctorUser.email,
+          "New Appointment Booking",
+          `
+        <h2>New Patient Appointment</h2>
+        <p>You have a new appointment with ${patient.name}.</p>
+        <p>Date: ${new Date(appointmentDate).toDateString()}</p>
+        <p>Time: ${startTime}</p>
+        <p>Symptoms: ${symptoms || "None provided"}</p>
+        `
         );
-  }
+      }
+
+      // 3. Email Admins
+      for (const admin of admins) {
+        if (admin.email) {
+          await sendEmail(
+            admin.email,
+            "System Alert: New Appointment Created",
+            `
+          <h2>New Booking Alert</h2>
+          <p>Patient: ${patient.name} (${patient.email})</p>
+          <p>Doctor: Dr. ${doctorUser?.name || "Unknown"}</p>
+          <p>Date: ${new Date(appointmentDate).toDateString()}</p>
+          <p>Time: ${startTime}</p>
+          `
+          );
+        }
+      }
+
+      // 4. Create Google Calendar Event
+      try {
+        const eventId = await createCalendarEvent(
+          appointment,
+          patient.name,
+          doctorUser?.name || "Doctor",
+          patient.email,
+          doctorUser?.email
+        );
+
+        if (eventId) {
+          appointment.googleEventId = eventId;
+          await appointment.save();
+        }
+      } catch (error) {
+        console.log("Calendar Error", error.message);
+      }
 
     return res.status(201).json({
       success: true,
