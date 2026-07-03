@@ -15,8 +15,14 @@ export default function Register() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isValidEmail(formData.email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
     setIsLoading(true);
     try {
       await registerUser(formData);

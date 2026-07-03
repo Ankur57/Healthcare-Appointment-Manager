@@ -1,4 +1,7 @@
 import User from "../models/User.js";
+import { cookieOptions, clearCookieOptions } from "../utils/cookieOptions.js";
+
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 export const register = async (req, res) => {
   try {
@@ -7,6 +10,10 @@ export const register = async (req, res) => {
       email,
       password,
     } = req.body;
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: "Please enter a valid email address" });
+    }
 
     const existingUser =
       await User.findOne({ email });
@@ -30,25 +37,12 @@ export const register = async (req, res) => {
     const token =
       user.generateToken();
 
-    res.cookie(
-      "accessToken",
-      token,
-      {
-        httpOnly: true,
-        maxAge:
-          7 *
-          24 *
-          60 *
-          60 *
-          1000
-      }
-    );
+    res.cookie("accessToken", token, cookieOptions);
 
     return res.status(201).json({
       success: true,
-      message:
-        "Registration successful",
-      user,token
+      message: "Registration successful",
+      user
     });
   } catch (error) {
     return res.status(500).json({
@@ -64,6 +58,10 @@ export const login = async (
   try {
     const { email, password } =
       req.body;
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: "Please enter a valid email address" });
+    }
 
     const user =
       await User.findOne({
@@ -94,25 +92,12 @@ export const login = async (
     const token =
       user.generateToken();
 
-    res.cookie(
-      "accessToken",
-      token,
-      {
-        httpOnly: true,
-        maxAge:
-          7 *
-          24 *
-          60 *
-          60 *
-          1000
-      }
-    );
+    res.cookie("accessToken", token, cookieOptions);
 
     return res.status(200).json({
       success: true,
-      message:
-        "Login successful",
-      user,token
+      message: "Login successful",
+      user
     });
   } catch (error) {
     return res.status(500).json({
@@ -125,9 +110,7 @@ export const logout = async (
   req,
   res
 ) => {
-  res.clearCookie(
-    "accessToken"
-  );
+  res.clearCookie("accessToken", clearCookieOptions);
 
   return res.status(200).json({
     success: true,

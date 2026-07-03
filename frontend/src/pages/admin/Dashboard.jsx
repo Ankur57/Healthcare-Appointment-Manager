@@ -13,20 +13,25 @@ const EMPTY_FORM = {
 
 export default function AdminDashboard() {
   const [doctors, setDoctors] = useState([]);
+  const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDoctors();
+    fetchData();
   }, []);
 
-  const fetchDoctors = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/admin/doctors");
-      // Backend returns: { success, doctors: [...] }
-      setDoctors(res.data.doctors || []);
+      const [docRes, aptRes] = await Promise.all([
+        api.get("/admin/doctors"),
+        api.get("/admin/appointments")
+      ]);
+      setDoctors(docRes.data.doctors || []);
+      setAppointments(aptRes.data.appointments || []);
     } catch (_) {
       setDoctors([]);
+      setAppointments([]);
     } finally {
       setLoading(false);
     }
@@ -63,7 +68,7 @@ export default function AdminDashboard() {
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           {[
             { label: "Total Doctors", value: doctors.length, icon: "👨‍⚕️", color: "border-teal-200 bg-teal-50" },
-            { label: "Specializations", value: specializations.length, icon: "🏷️", color: "border-blue-200 bg-blue-50" },
+            { label: "Total Appointments", value: appointments.length, icon: "📅", color: "border-blue-200 bg-blue-50" },
             { label: "Avg. Consultation Fee", value: avgFee > 0 ? `₹${avgFee}` : "—", icon: "💰", color: "border-green-200 bg-green-50" },
             { label: "Platform Status", value: "Active", icon: "✅", color: "border-emerald-200 bg-emerald-50" },
           ].map((s) => (
@@ -104,6 +109,39 @@ export default function AdminDashboard() {
                   <p className="text-xs text-gray-500">{doc.specialization}</p>
                   <p className="text-xs text-gray-400 mt-0.5">₹{doc.consultationFee} · {doc.experience || 0} yrs</p>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Appointments Overview */}
+      <div>
+        <div className="flex items-center justify-between mb-4 mt-8">
+          <h2 className="text-xl font-bold text-gray-900">Recent Appointments</h2>
+          <Link to="/admin/appointments" className="text-sm font-medium text-purple-600 hover:text-purple-700">
+            View all →
+          </Link>
+        </div>
+
+        {loading ? null : appointments.length === 0 ? (
+          <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 p-10 text-center">
+            <div className="text-5xl mb-3">📅</div>
+            <h3 className="font-semibold text-gray-700">No appointments yet</h3>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {appointments.slice(0, 6).map((apt) => (
+              <div key={apt._id} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-sm transition-shadow">
+                <div className="flex justify-between items-start mb-2">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${apt.status === "COMPLETED" ? "bg-green-100 text-green-800" : apt.status === "CANCELLED" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"}`}>
+                    {apt.status}
+                  </span>
+                  <span className="text-xs text-gray-500 font-medium">{new Date(apt.appointmentDate).toLocaleDateString()}</span>
+                </div>
+                <p className="text-sm font-medium text-gray-900 truncate">Patient: {apt.patient?.name}</p>
+                <p className="text-xs text-gray-600 truncate">Doctor: Dr. {apt.doctor?.user?.name}</p>
+                <p className="text-xs text-gray-500 mt-1">Time: {apt.startTime}</p>
               </div>
             ))}
           </div>

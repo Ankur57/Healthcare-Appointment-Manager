@@ -14,8 +14,8 @@ export const getMyAppointments =
 export const cancelAppointment =
   async (id) => {
     const res =
-      await api.put(
-        `/appointments/cancel/${id}`
+      await api.delete(
+        `/appointments/${id}`
       );
 
     return res.data;

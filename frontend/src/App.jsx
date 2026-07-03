@@ -18,6 +18,7 @@ import DoctorDashboard from "./pages/doctor/Dashboard";
 import DoctorAppointments from "./pages/doctor/Appointments";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminDoctors from "./pages/admin/Doctors";
+import AdminAppointments from "./pages/admin/Appointments";
 
 function App() {
   return (
@@ -65,6 +66,7 @@ function App() {
         >
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="doctors" element={<AdminDoctors />} />
+          <Route path="appointments" element={<AdminAppointments />} />
         </Route>
       </Route>
     </Routes>

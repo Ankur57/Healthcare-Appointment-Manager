@@ -152,11 +152,12 @@ export default function DoctorsList() {
 
               {/* Card Body */}
               <div className="p-5">
-                <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="grid grid-cols-2 gap-3 mb-4">
                   {[
                     { label: "Experience", value: `${doc.experience || 0} yrs` },
-                    { label: "Fee", value: `₹${doc.consultationFee}` },
+                    { label: "Fee", value: `₹${doc.consultationFee || 0}` },
                     { label: "Slot", value: `${doc.slotDuration || 30} min` },
+                    { label: "Hours", value: doc.workingHours ? `${doc.workingHours.start} - ${doc.workingHours.end}` : "09:00 - 18:00" },
                   ].map((info) => (
                     <div key={info.label} className="bg-gray-50 rounded-lg p-2 text-center">
                       <p className="text-sm font-bold text-gray-900">{info.value}</p>

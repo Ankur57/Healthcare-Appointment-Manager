@@ -100,6 +100,22 @@ export default function MyAppointments() {
             const isExpanded = expandedApt === apt._id;
             const isCancelling = cancellingId === apt._id;
 
+            const isPast = () => {
+              const now = new Date();
+              const aptDate = new Date(apt.appointmentDate);
+              const todayStr = now.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+              const aptDateStr = aptDate.toISOString().split('T')[0];
+              if (aptDateStr < todayStr) return true;
+              if (aptDateStr === todayStr && apt.startTime) {
+                const [h, m] = apt.startTime.split(':').map(Number);
+                const slotMin = h * 60 + m;
+                const currentMin = now.getHours() * 60 + now.getMinutes();
+                if (slotMin <= currentMin) return true;
+              }
+              return false;
+            };
+            const canCancel = apt.status === "BOOKED" && !isPast();
+
             return (
               <div
                 key={apt._id}
@@ -157,7 +173,7 @@ export default function MyAppointments() {
                       {isExpanded ? "▲ Show less" : "▼ View full details"}
                     </button>
                     <div className="flex gap-2">
-                      {apt.status === "BOOKED" && (
+                      {canCancel && (
                         <Button
                           variant="danger"
                           size="sm"
@@ -182,15 +198,18 @@ export default function MyAppointments() {
                     )}
 
                     {apt.aiPreVisitSummary && (
-                      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                        <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2">🧠 AI Pre-Visit Summary</p>
-                        <div className="space-y-1 text-sm text-blue-800">
-                          {apt.aiPreVisitSummary.urgencyLevel && <p><strong>Urgency:</strong> {apt.aiPreVisitSummary.urgencyLevel}</p>}
-                          {apt.aiPreVisitSummary.chiefComplaint && <p><strong>Chief Complaint:</strong> {apt.aiPreVisitSummary.chiefComplaint}</p>}
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 shadow-sm relative overflow-hidden mt-4">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 text-5xl">🧠</div>
+                        <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <span className="bg-blue-100 p-1 rounded">✨</span> AI Pre-Visit Analysis
+                        </p>
+                        <div className="space-y-2 text-sm text-blue-900 relative z-10">
+                          {apt.aiPreVisitSummary.urgencyLevel && <p><span className="font-semibold bg-white/50 px-2 py-0.5 rounded mr-1">Urgency</span> {apt.aiPreVisitSummary.urgencyLevel}</p>}
+                          {apt.aiPreVisitSummary.chiefComplaint && <p><span className="font-semibold bg-white/50 px-2 py-0.5 rounded mr-1">Complaint</span> {apt.aiPreVisitSummary.chiefComplaint}</p>}
                           {apt.aiPreVisitSummary.suggestedQuestions?.length > 0 && (
-                            <div>
-                              <p className="font-medium mt-2">Questions for your Doctor:</p>
-                              <ul className="list-disc list-inside text-xs space-y-0.5 mt-1">
+                            <div className="pt-3 mt-3 border-t border-blue-200/50">
+                              <p className="font-semibold mb-2 text-blue-800">Suggested Questions for Dr. {apt.doctor?.user?.name || "Doctor"}:</p>
+                              <ul className="list-disc list-inside space-y-1.5 mt-1 pl-1">
                                 {apt.aiPreVisitSummary.suggestedQuestions.map((q, i) => (
                                   <li key={i}>{q}</li>
                                 ))}
@@ -216,12 +235,20 @@ export default function MyAppointments() {
                           </div>
                         )}
                         {apt.aiPostVisitSummary?.summary && (
-                          <div className="bg-teal-50 border border-teal-100 rounded-xl p-4">
-                            <p className="text-xs font-semibold text-teal-700 uppercase tracking-wide mb-2">🤖 AI Post-Visit Summary</p>
-                            <p className="text-sm text-teal-800">{apt.aiPostVisitSummary.summary}</p>
-                            {apt.aiPostVisitSummary.followUpSteps && (
-                              <p className="text-sm text-teal-800 mt-2"><strong>Follow-up:</strong> {apt.aiPostVisitSummary.followUpSteps}</p>
-                            )}
+                          <div className="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 rounded-xl p-5 shadow-sm relative overflow-hidden mt-4">
+                            <div className="absolute top-0 right-0 p-4 opacity-10 text-5xl">🤖</div>
+                            <p className="text-xs font-bold text-teal-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                              <span className="bg-teal-100 p-1 rounded">✨</span> AI Post-Visit Summary
+                            </p>
+                            <div className="relative z-10 text-sm text-teal-900 space-y-3">
+                              <p className="leading-relaxed">{apt.aiPostVisitSummary.summary}</p>
+                              {apt.aiPostVisitSummary.medicationSchedule && (
+                                <p><strong className="font-semibold bg-white/50 px-2 py-0.5 rounded mr-1">Medications</strong> {apt.aiPostVisitSummary.medicationSchedule}</p>
+                              )}
+                              {apt.aiPostVisitSummary.followUpSteps && (
+                                <p><strong className="font-semibold bg-white/50 px-2 py-0.5 rounded mr-1">Follow-up</strong> {apt.aiPostVisitSummary.followUpSteps}</p>
+                              )}
+                            </div>
                           </div>
                         )}
                       </>

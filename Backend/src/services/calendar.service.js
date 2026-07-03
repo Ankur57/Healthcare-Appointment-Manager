@@ -23,46 +23,38 @@ export const createCalendarEvent = async (
   doctorEmail
 ) => {
   try {
-    const appointmentDate = new Date(
-      appointment.appointmentDate
-    );
-
-    const [hours, minutes] =
-      appointment.startTime
-        .split(":")
-        .map(Number);
-
-    appointmentDate.setHours(
-      hours,
-      minutes,
-      0,
-      0
-    );
-
-    const endDate = new Date(
-      appointmentDate
-    );
-
-    endDate.setMinutes(
-      endDate.getMinutes() + 30
-    );
+    const dateStr = new Date(appointment.appointmentDate).toISOString().split("T")[0];
+    const startDateTime = `${dateStr}T${appointment.startTime}:00+05:30`;
+    
+    let endDateTime = "";
+    if (appointment.endTime) {
+      endDateTime = `${dateStr}T${appointment.endTime}:00+05:30`;
+    } else {
+      const [hours, minutes] = appointment.startTime.split(":").map(Number);
+      let endM = minutes + 30;
+      let endH = hours + Math.floor(endM / 60);
+      endM = endM % 60;
+      endDateTime = `${dateStr}T${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}:00+05:30`;
+    }
 
     const event = {
-      summary: `Consultation: ${patientName} & Dr. ${doctorName}`,
+      summary: `🏥 MediFlow: ${patientName} & Dr. ${doctorName}`,
       description: `
-Patient: ${patientName}
-
-Symptoms:
-${appointment.symptoms || "None provided"}
-`,
+<h3>🏥 MediFlow Healthcare — Appointment Details</h3>
+<p><b>Patient:</b> ${patientName}</p>
+<p><b>Doctor:</b> Dr. ${doctorName}</p>
+<hr/>
+<p><b>📝 Reported Symptoms:</b></p>
+<p>${appointment.symptoms || "None provided"}</p>
+<br/>
+<p><i>💡 Tip: You can view or cancel your appointment directly from your <a href="http://localhost:5173/">MediFlow Dashboard</a>.</i></p>
+      `.trim(),
       start: {
-        dateTime:
-          appointmentDate.toISOString(),
+        dateTime: startDateTime,
         timeZone: "Asia/Kolkata",
       },
       end: {
-        dateTime:
-          endDate.toISOString(),
+        dateTime: endDateTime,
         timeZone: "Asia/Kolkata",
       },
       attendees: [
@@ -86,5 +78,18 @@ ${appointment.symptoms || "None provided"}
     );
 
     return null;
+  }
+};
+
+export const deleteCalendarEvent = async (eventId) => {
+  try {
+    if (!eventId) return;
+    await calendar.events.delete({
+      calendarId: "primary",
+      eventId: eventId,
+      sendUpdates: "all",
+    });
+  } catch (error) {
+    console.log("Google Calendar Delete Error:", error.message);
   }
 };

@@ -8,12 +8,15 @@ import { toast } from "react-hot-toast";
 const EMPTY_FORM = {
   name: "", email: "", password: "", specialization: "",
   qualification: "", experience: 0, consultationFee: 500, slotDuration: 30,
+  workingHoursStart: "09:00", workingHoursEnd: "18:00",
 };
 
 export default function AdminDoctors() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateId, setUpdateId] = useState(null);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [formLoading, setFormLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -42,18 +45,50 @@ export default function AdminDoctors() {
     }
   };
 
-  const handleCreate = async (e) => {
+  const handleSubmitForm = async (e) => {
     e.preventDefault();
     setFormLoading(true);
     try {
-      await api.post("/admin/doctors", formData);
-      toast.success("Doctor registered successfully! ✅");
-      setIsCreating(false);
+      const payload = {
+        ...formData,
+        workingHours: { start: formData.workingHoursStart, end: formData.workingHoursEnd }
+      };
+      if (isUpdating) {
+        // Exclude password if empty
+        const { password, ...updatePayload } = payload;
+        if (password) updatePayload.password = password;
+        await api.put(`/admin/doctors/${updateId}`, updatePayload);
+        toast.success("Doctor updated successfully! ✅");
+        setIsUpdating(false);
+      } else {
+        await api.post("/admin/doctors", payload);
+        toast.success("Doctor registered successfully! ✅");
+        setIsCreating(false);
+      }
       setFormData(EMPTY_FORM);
       fetchDoctors();
-    } catch (_) { } finally {
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Operation failed");
+    } finally {
       setFormLoading(false);
     }
+  };
+
+  const handleOpenUpdate = (doc) => {
+    setUpdateId(doc._id);
+    setFormData({
+      name: doc.user?.name || "",
+      email: doc.user?.email || "",
+      password: "",
+      specialization: doc.specialization || "",
+      qualification: doc.qualification || "",
+      experience: doc.experience || 0,
+      consultationFee: doc.consultationFee || 500,
+      slotDuration: doc.slotDuration || 30,
+      workingHoursStart: doc.workingHours?.start || "09:00",
+      workingHoursEnd: doc.workingHours?.end || "18:00",
+    });
+    setIsUpdating(true);
   };
 
   const handleDelete = async (id, name) => {
@@ -104,7 +139,7 @@ export default function AdminDoctors() {
             {doctors.length} doctor{doctors.length !== 1 ? "s" : ""} registered on the platform.
           </p>
         </div>
-        <Button onClick={() => { setFormData(EMPTY_FORM); setIsCreating(true); }}>
+        <Button onClick={() => { setFormData(EMPTY_FORM); setIsCreating(true); setIsUpdating(false); }}>
           + Add New Doctor
         </Button>
       </div>
@@ -160,6 +195,12 @@ export default function AdminDoctors() {
                     <td className="px-5 py-4 text-sm text-gray-600">{doc.slotDuration || 30} min</td>
                     <td className="px-5 py-4 text-right space-x-2">
                       <button
+                        onClick={() => handleOpenUpdate(doc)}
+                        className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
                         onClick={() => setLeaveDoctor(doc)}
                         className="text-xs font-medium text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-3 py-1.5 rounded-lg transition-colors"
                       >
@@ -189,18 +230,18 @@ export default function AdminDoctors() {
         </div>
       )}
 
-      {/* Create Doctor Modal */}
-      {isCreating && (
+      {/* Create/Update Doctor Modal */}
+      {(isCreating || isUpdating) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-5 rounded-t-2xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-bold text-white text-lg">Register New Doctor</h3>
-                  <p className="text-purple-200 text-sm mt-0.5">Fill in the doctor's details to onboard them.</p>
+                  <h3 className="font-bold text-white text-lg">{isUpdating ? "Update Doctor Profile" : "Register New Doctor"}</h3>
+                  <p className="text-purple-200 text-sm mt-0.5">{isUpdating ? "Modify doctor details and settings." : "Fill in the doctor's details to onboard them."}</p>
                 </div>
                 <button
-                  onClick={() => setIsCreating(false)}
+                  onClick={() => { setIsCreating(false); setIsUpdating(false); }}
                   className="w-8 h-8 rounded-full bg-white/20 text-white hover:bg-white/30 flex items-center justify-center"
                 >
                   ✕
@@ -208,13 +249,13 @@ export default function AdminDoctors() {
               </div>
             </div>
 
-            <form onSubmit={handleCreate} className="p-5 space-y-4">
+            <form onSubmit={handleSubmitForm} className="p-5 space-y-4">
               <div className="col-span-2">
                 <Input label="Full Name" type="text" required placeholder="John Smith" value={formData.name} onChange={set("name")} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Input label="Email Address" type="email" required placeholder="doctor@hospital.com" value={formData.email} onChange={set("email")} />
-                <Input label="Temporary Password" type="password" required placeholder="Min. 6 characters" value={formData.password} onChange={set("password")} />
+                <Input label="Password" type="password" required={!isUpdating} placeholder={isUpdating ? "Leave blank to keep" : "Min. 6 characters"} value={formData.password} onChange={set("password")} />
               </div>
               
               <div>
@@ -233,24 +274,31 @@ export default function AdminDoctors() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <Input label="Qualification" type="text" placeholder="e.g., MBBS, MD" value={formData.qualification} onChange={set("qualification")} />
-                <Input label="Years of Experience" type="number" min="0" max="60" value={formData.experience} onChange={set("experience")} />
+                <Input label="Qualification" type="text" required placeholder="e.g., MBBS, MD" value={formData.qualification} onChange={set("qualification")} />
+                <Input label="Years of Experience" type="number" required min="0" max="60" value={formData.experience} onChange={set("experience")} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Input label="Consultation Fee (₹)" type="number" min="0" required value={formData.consultationFee} onChange={set("consultationFee")} />
                 <Input label="Slot Duration (min)" type="number" min="10" max="120" required value={formData.slotDuration} onChange={set("slotDuration")} />
               </div>
-
-              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-700">
-                ⚠️ The doctor can log in immediately with these credentials. They can update their profile details later.
+              
+              <div className="grid grid-cols-2 gap-4">
+                <Input label="Working Hours Start" type="time" required value={formData.workingHoursStart} onChange={set("workingHoursStart")} />
+                <Input label="Working Hours End" type="time" required value={formData.workingHoursEnd} onChange={set("workingHoursEnd")} />
               </div>
 
+              {!isUpdating && (
+                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-700">
+                  ⚠️ The doctor can log in immediately with these credentials.
+                </div>
+              )}
+
               <div className="flex gap-3 pt-2">
-                <Button type="button" variant="outline" className="flex-1" onClick={() => setIsCreating(false)}>
+                <Button type="button" variant="outline" className="flex-1" onClick={() => { setIsCreating(false); setIsUpdating(false); }}>
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1" isLoading={formLoading}>
-                  Register Doctor
+                  {isUpdating ? "Save Changes" : "Register Doctor"}
                 </Button>
               </div>
             </form>

@@ -7,8 +7,8 @@ import {
 }
 from "../services/ai.service.js"
 import {sendEmail} from "../services/email.service.js"
-
-import { createCalendarEvent } from "../services/calendar.service.js";
+import { createCalendarEvent, deleteCalendarEvent } from "../services/calendar.service.js";
+import { bookingConfirmationPatientEmail, bookingConfirmationDoctorEmail, bookingAdminEmail, cancellationPatientEmail, cancellationDoctorEmail } from '../services/emailTemplates.js';
 
 export const createAppointment =
 async (req, res) => {
@@ -25,6 +25,20 @@ async (req, res) => {
 
     const normalizedDate = new Date(appointmentDate);
     normalizedDate.setUTCHours(0, 0, 0, 0);
+
+    const now = new Date();
+    const istNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const todayStr = istNow.toISOString().split('T')[0];
+    const appointmentDateStr = normalizedDate.toISOString().split('T')[0];
+
+    if (appointmentDateStr === todayStr) {
+      const [slotH, slotM] = startTime.split(':').map(Number);
+      const slotMinutes = slotH * 60 + slotM;
+      const currentMinutes = istNow.getHours() * 60 + istNow.getMinutes();
+      if (slotMinutes <= currentMinutes) {
+        return res.status(400).json({ success: false, message: 'Cannot book a slot that has already passed' });
+      }
+    }
 
     const doctor =
       await Doctor.findById(
@@ -55,6 +69,16 @@ async (req, res) => {
       });
     }
 
+    const patientConflict = await Appointment.findOne({
+      patient: req.user._id,
+      appointmentDate: normalizedDate,
+      startTime,
+      status: 'BOOKED'
+    });
+    if (patientConflict) {
+      return res.status(400).json({ success: false, message: 'You already have an appointment booked at this time slot' });
+    }
+
     const aiSummary =
     await generatePreVisitSummary(
       symptoms
@@ -81,47 +105,46 @@ async (req, res) => {
       // Fetch Admins for notifications
       const admins = await User.find({ role: "admin" });
 
-      // 1. Email Patient
-      await sendEmail(
-        patient.email,
-        "Appointment Booked Successfully",
-        `
-      <h2>Appointment Confirmed</h2>
-      <p>Your appointment with Dr. ${doctorUser?.name || "Doctor"} has been booked.</p>
-      <p>Date: ${new Date(appointmentDate).toDateString()}</p>
-      <p>Time: ${startTime}</p>
-      `
-      );
+      const patientEmailData = bookingConfirmationPatientEmail({
+        patientName: patient.name,
+        doctorName: doctorUser?.name || 'Doctor',
+        specialization: doctor.specialization,
+        date: new Date(appointmentDate).toDateString(),
+        time: startTime,
+        endTime,
+        symptoms: symptoms || 'None provided',
+        aiSummary: aiSummary,
+        fee: doctor.consultationFee,
+        qualification: doctor.qualification,
+        experience: doctor.experience,
+        workingHours: doctor.workingHours
+      });
+      await sendEmail(patient.email, patientEmailData.subject, patientEmailData.html);
 
-      // 2. Email Doctor
-      if (doctorUser && doctorUser.email) {
-        await sendEmail(
-          doctorUser.email,
-          "New Appointment Booking",
-          `
-        <h2>New Patient Appointment</h2>
-        <p>You have a new appointment with ${patient.name}.</p>
-        <p>Date: ${new Date(appointmentDate).toDateString()}</p>
-        <p>Time: ${startTime}</p>
-        <p>Symptoms: ${symptoms || "None provided"}</p>
-        `
-        );
+      const doctorEmailData = bookingConfirmationDoctorEmail({
+        patientName: patient.name,
+        patientEmail: patient.email,
+        doctorName: doctorUser?.name || 'Doctor',
+        date: new Date(appointmentDate).toDateString(),
+        time: startTime,
+        endTime,
+        symptoms: symptoms || 'None provided',
+        aiSummary: aiSummary
+      });
+      if (doctorUser?.email) {
+        await sendEmail(doctorUser.email, doctorEmailData.subject, doctorEmailData.html);
       }
 
-      // 3. Email Admins
       for (const admin of admins) {
         if (admin.email) {
-          await sendEmail(
-            admin.email,
-            "System Alert: New Appointment Created",
-            `
-          <h2>New Booking Alert</h2>
-          <p>Patient: ${patient.name} (${patient.email})</p>
-          <p>Doctor: Dr. ${doctorUser?.name || "Unknown"}</p>
-          <p>Date: ${new Date(appointmentDate).toDateString()}</p>
-          <p>Time: ${startTime}</p>
-          `
-          );
+          const adminEmailData = bookingAdminEmail({
+            patientName: patient.name,
+            patientEmail: patient.email,
+            doctorName: doctorUser?.name || 'Unknown',
+            date: new Date(appointmentDate).toDateString(),
+            time: startTime
+          });
+          await sendEmail(admin.email, adminEmailData.subject, adminEmailData.html);
         }
       }
 
@@ -171,56 +194,72 @@ async (req, res) => {
 export const cancelAppointment =
   async (req, res) => {
     try {
-      const appointment =
-        await Appointment.findById(
-          req.params.id
-        );
+      const appointment = await Appointment.findById(req.params.id)
+        .populate({ path: 'doctor', populate: { path: 'user', select: 'name email' } });
 
       if (!appointment) {
-        return res.status(404).json({
-          success: false,
-          message:
-            "Appointment not found",
-        });
+        return res.status(404).json({ success: false, message: "Appointment not found" });
       }
 
-      // Only owner can cancel
-      if (
-        appointment.patient.toString() !==
-        req.user._id.toString()
-      ) {
-        return res.status(403).json({
-          success: false,
-          message:
-            "Unauthorized",
-        });
+      if (appointment.patient.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ success: false, message: "Unauthorized" });
       }
 
-      if (
-        appointment.status ===
-        "CANCELLED"
-      ) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "Appointment already cancelled",
-        });
+      if (appointment.status === "CANCELLED") {
+        return res.status(400).json({ success: false, message: "Appointment already cancelled" });
       }
 
-      appointment.status =
-        "CANCELLED";
+      const now = new Date();
+      const istNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      const aptDate = new Date(appointment.appointmentDate);
+      const aptDateStr = aptDate.toISOString().split('T')[0];
+      const todayStr = istNow.toISOString().split('T')[0];
 
+      if (aptDateStr < todayStr) {
+        return res.status(400).json({ success: false, message: 'Cannot cancel a past appointment' });
+      }
+      if (aptDateStr === todayStr && appointment.startTime) {
+        const [h, m] = appointment.startTime.split(':').map(Number);
+        const slotMin = h * 60 + m;
+        const currentMin = istNow.getHours() * 60 + istNow.getMinutes();
+        if (slotMin <= currentMin) {
+          return res.status(400).json({ success: false, message: 'Cannot cancel a past appointment' });
+        }
+      }
+
+      appointment.status = "CANCELLED";
       await appointment.save();
 
-      const patient = req.user;
+      if (appointment.googleEventId) {
+        await deleteCalendarEvent(appointment.googleEventId);
+      }
 
-      await sendEmail(
-        patient.email,
-        "Appointment Cancelled",
-        `
-      <h2>Appointment Cancelled</h2>
-      `
-      );
+      const patient = req.user;
+      const doctorName = appointment.doctor?.user?.name || 'Doctor';
+      const doctorEmail = appointment.doctor?.user?.email;
+      const aptDateStrFormatted = new Date(appointment.appointmentDate).toDateString();
+
+      const patientCancelEmail = cancellationPatientEmail({
+        patientName: patient.name,
+        doctorName,
+        specialization: appointment.doctor?.specialization,
+        date: aptDateStrFormatted,
+        time: appointment.startTime,
+        reason: 'Cancelled by patient'
+      });
+      await sendEmail(patient.email, patientCancelEmail.subject, patientCancelEmail.html);
+
+      if (doctorEmail) {
+        const doctorCancelEmail = cancellationDoctorEmail({
+          patientName: patient.name,
+          patientEmail: patient.email,
+          doctorName,
+          date: aptDateStrFormatted,
+          time: appointment.startTime,
+          reason: 'Cancelled by patient'
+        });
+        await sendEmail(doctorEmail, doctorCancelEmail.subject, doctorCancelEmail.html);
+      }
 
       return res.status(200).json({
         success: true,

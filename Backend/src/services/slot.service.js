@@ -35,7 +35,22 @@ const generateSlots = async (doctor, date) => {
 
   const bookedStartTimes = booked.map((item) => item.startTime);
 
-  return slots.filter((slot) => !bookedStartTimes.includes(slot.startTime));
+  let availableSlots = slots.filter((slot) => !bookedStartTimes.includes(slot.startTime));
+
+  const now = new Date();
+  const istNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  const todayStr = istNow.toISOString().split('T')[0];
+  const dateStr = new Date(date).toISOString().split('T')[0];
+
+  if (dateStr === todayStr) {
+    const currentIST = istNow.getHours() * 60 + istNow.getMinutes();
+    availableSlots = availableSlots.filter(slot => {
+      const [h, m] = slot.startTime.split(':').map(Number);
+      return h * 60 + m > currentIST;
+    });
+  }
+
+  return availableSlots;
 };
 
 export default generateSlots;

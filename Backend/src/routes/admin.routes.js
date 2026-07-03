@@ -8,7 +8,8 @@ import {
   getDoctor,
   updateDoctor,
   deleteDoctor,
-  addLeave
+  addLeave,
+  getAllAppointments
 } from "../controllers/admin.controller.js";
 
 const router =
@@ -47,6 +48,11 @@ router.delete(
 router.put(
   "/doctors/:id/leave",
   addLeave
+);
+
+router.get(
+  "/appointments",
+  getAllAppointments
 );
 
 export default router;

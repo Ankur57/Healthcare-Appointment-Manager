@@ -3,6 +3,8 @@ import Doctor from "../models/Doctor.js";
 import {
   generatePostVisitSummary,
 } from "../services/ai.service.js";
+import { postVisitPatientEmail, postVisitDoctorEmail } from '../services/emailTemplates.js';
+import { sendEmail } from '../services/email.service.js';
 
 export const getAppointments =
   async (req, res) => {
@@ -133,72 +135,49 @@ ${prescription}
       if (medications.length > 0) {
         const MedicationReminder = (await import("../models/MedicationReminder.js")).default;
         
-        const nextDay = new Date();
-        nextDay.setUTCHours(0, 0, 0, 0);
-        nextDay.setDate(nextDay.getDate() + 1);
-
         for (const med of medications) {
           if (med.medicineName && med.frequency) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            if (med.frequency === 'once') {
+              tomorrow.setUTCHours(2, 30, 0, 0); // 8:00 AM IST
+            } else if (med.frequency === 'twice') {
+              tomorrow.setUTCHours(2, 30, 0, 0); // 8:00 AM IST
+            } else if (med.frequency === 'thrice') {
+              tomorrow.setUTCHours(2, 30, 0, 0); // 8:00 AM IST
+            }
+            
             await MedicationReminder.create({
               patient: appointment.patient._id,
               medicineName: med.medicineName,
               frequency: med.frequency,
-              nextReminderTime: nextDay
+              nextReminderTime: tomorrow
             });
           }
         }
       }
 
-      // Send Email Service Import
-      const { sendEmail } = await import("../services/email.service.js");
-
       // Email Patient
       if (appointment.patient?.email) {
-        await sendEmail(
-          appointment.patient.email,
-          "Your Post-Visit Summary & Prescription",
-          `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-          <div style="background-color: #0d9488; color: white; padding: 20px; text-align: center;">
-            <h2 style="margin: 0; font-size: 24px;">Consultation Summary</h2>
-            <p style="margin: 5px 0 0; opacity: 0.9;">MediFlow Healthcare</p>
-          </div>
-          <div style="padding: 20px; color: #374151;">
-            <p style="font-size: 16px;">Dear <strong>${appointment.patient.name}</strong>,</p>
-            <p>Your recent consultation with <strong>Dr. ${appointment.doctor?.user?.name || "Doctor"}</strong> has been successfully completed. Below is the AI-generated summary and your doctor's official prescription.</p>
-            
-            <div style="background-color: #f3f4f6; border-left: 4px solid #0d9488; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0;">
-              <h3 style="margin-top: 0; color: #111827;">AI Post-Visit Summary</h3>
-              <p style="margin-bottom: 8px;"><strong>Diagnosis / Summary:</strong><br/> ${aiSummary?.summary || "Not available"}</p>
-              <p style="margin-bottom: 8px;"><strong>Medication Schedule:</strong><br/> ${aiSummary?.medicationSchedule || "Not available"}</p>
-              <p style="margin: 0;"><strong>Follow-Up Steps:</strong><br/> ${aiSummary?.followUpSteps || "Not available"}</p>
-            </div>
-
-            <h3 style="color: #111827; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">Doctor's Prescription</h3>
-            <div style="white-space: pre-wrap; background-color: #fff; border: 1px solid #e5e7eb; padding: 15px; border-radius: 4px; font-family: monospace;">
-${prescription || "No prescription provided."}
-            </div>
-            
-            <p style="margin-top: 30px; font-size: 12px; color: #6b7280; text-align: center;">
-              This is an automated message from MediFlow. If you have any questions, please contact our support team.
-            </p>
-          </div>
-        </div>
-        `
-        );
+        const patientEmail = postVisitPatientEmail({
+          patientName: appointment.patient.name,
+          doctorName: appointment.doctor?.user?.name || 'Doctor',
+          aiSummary,
+          prescription: prescription || 'No prescription provided',
+          notes: visitNotes,
+          medications: medications || []
+        });
+        await sendEmail(appointment.patient.email, patientEmail.subject, patientEmail.html);
       }
 
       // Email Doctor
       if (appointment.doctor?.user?.email) {
-        await sendEmail(
-          appointment.doctor.user.email,
-          "Consultation Notes Saved",
-          `
-        <h2>Consultation Completed</h2>
-        <p>You have successfully completed the consultation with ${appointment.patient?.name}.</p>
-        <p>The notes and prescription have been saved to their file, and an AI summary was generated.</p>
-        `
-        );
+        const doctorEmailData = postVisitDoctorEmail({
+          patientName: appointment.patient?.name,
+          doctorName: appointment.doctor?.user?.name || 'Doctor'
+        });
+        await sendEmail(appointment.doctor.user.email, doctorEmailData.subject, doctorEmailData.html);
       }
 
       return res.status(200).json({
