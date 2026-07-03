@@ -221,7 +221,7 @@ Healthcare-Appointment-Manager/
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/Healthcare-Appointment-Manager.git
+git clone https://github.com/Ankur57/Healthcare-Appointment-Manager.git
 cd Healthcare-Appointment-Manager
 ```
 
@@ -256,26 +256,26 @@ MONGO_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/<dbname
 JWT_SECRET=your_super_secret_jwt_key_here
 
 # Client URL (for CORS)
-CLIENT_URL=http://localhost:5174
+CLIENT_URL=https://hopeful-radiance-production-dce4.up.railway.app/
 
 # Email (Resend)
-EMAIL_USER=noreply@yourdomain.com
+EMAIL_USER=HealthcareAppointment@soandita.shop
 RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxx
 
 # Gemini AI
-GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=gemini_api_key_here
 
 # Google Calendar OAuth
-GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_ID=google_client_id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-your_google_client_secret
-GOOGLE_REDIRECT_URI=http://localhost:5000/auth/google/callback
+GOOGLE_REDIRECT_URI=http://healthcare-appointment-manager-production-3b9a.up.railway.app/auth/google/callback
 GOOGLE_REFRESH_TOKEN=your_google_refresh_token_here
 ```
 
 ### Frontend `.env`
 
 ```env
-VITE_API_URL=http://localhost:5000/api/v1
+VITE_API_URL=https://hopeful-radiance-production-dce4.up.railway.app/api/v1
 ```
 
 ---
@@ -291,7 +291,7 @@ Copy and fill in both `.env` files as described above.
 ```bash
 cd Backend
 npm run dev
-# Server runs at http://localhost:5000
+# Server runs at http://healthcare-appointment-manager-production-3b9a.up.railway.app
 ```
 
 ### 3. Start the Frontend
@@ -299,7 +299,7 @@ npm run dev
 ```bash
 cd frontend
 npm run dev
-# Frontend runs at http://localhost:5174
+# Frontend runs at [http://localhost:5174](https://hopeful-radiance-production-dce4.up.railway.app
 ```
 
 ### 4. Seed an Admin User
@@ -322,7 +322,7 @@ db.users.insertOne({
 
 ## 📦 Deployment Instructions
 
-### Backend (Render / Railway)
+### Backend (Railway)
 
 1. Push the `Backend/` folder to a GitHub repository.
 2. Create a new **Web Service** on Render.
@@ -331,12 +331,12 @@ db.users.insertOne({
 5. Add all Backend environment variables.
 6. Update `CLIENT_URL` to your deployed frontend URL.
 
-### Frontend (Vercel / Netlify)
+### Frontend (Railway)
 
 1. Push the `frontend/` folder to GitHub.
 2. Import project in Vercel.
 3. Set **Framework Preset**: `Vite`.
-4. Add environment variable: `VITE_API_URL=https://your-backend.onrender.com/api/v1`
+4. Add environment variable: `VITE_API_URL=https://hopeful-radiance-production-dce4.up.railway.app/`
 5. Deploy.
 
 ### Important Production Changes
@@ -367,10 +367,8 @@ db.users.insertOne({
 
 | Service | URL |
 |---|---|
-| Frontend | `https://your-frontend.vercel.app` |
-| Backend API | `https://your-backend.onrender.com/api/v1` |
-
-> Replace with your actual deployed URLs.
+| Frontend | `https://hopeful-radiance-production-dce4.up.railway.app/` |
+| Backend API | `https://healthcare-appointment-manager-production-3b9a.up.railway.app/api/v1` |
 
 ---
 
