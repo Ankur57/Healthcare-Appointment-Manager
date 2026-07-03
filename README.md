@@ -37,6 +37,12 @@ The platform enables:
 
 The system integrates **Google Gemini AI** for intelligent clinical summaries, **Google Calendar API** for calendar event management, and **Resend** for professional HTML email notifications — making it a complete, real-world healthcare solution.
 
+## ⚠️ Third-Party Cookies Requirement
+
+This application uses secure cookies for authentication. If third-party cookies are blocked in your browser, login and protected routes may fail.
+
+Please ensure that third-party cookies are enabled for this website before using the application.
+
 ---
 
 ## ✨ Features
