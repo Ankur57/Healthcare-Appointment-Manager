@@ -348,16 +348,22 @@ db.users.insertOne({
 ---
 
 ## 📸 Screenshots
+
 Patient Dashboard
+
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c8273007-361b-457a-babd-9f65adf46f51" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/96a307f5-0d43-4d4e-ab8d-749bcdb53d3d" />
 
 Admin dashboard
+
+
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/efe189e9-68fc-4a54-a988-b5033b3b7f7c" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/3f07de67-4af1-45ef-98e0-ac3e92809c15" />
 
 
 Email notification 
+
+
 <img width="660" height="886" alt="image" src="https://github.com/user-attachments/assets/cfa1be32-b1d0-4f81-87b8-81d0b15777a7" />
 <img width="687" height="801" alt="image" src="https://github.com/user-attachments/assets/16edef9c-cb46-4074-a1c5-eeb0c860b7d8" />
 
