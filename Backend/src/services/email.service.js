@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import { Resend } from "resend";
 
 const resend = new Resend(
@@ -12,15 +14,25 @@ export const sendEmail = async (
   try {
     const response =
       await resend.emails.send({
-        from: `Healthcare Appointment Manager <${process.env.EMAIL_USER}>`,
+        from: `MediFlow Healthcare <${process.env.EMAIL_USER}>`,
         to,
         subject,
         html,
       });
 
     console.log(
-      `Email sent to ${to}`,
-      response.id
+      "Resend Response:",
+      response
+    );
+
+    if (response.error) {
+      throw new Error(
+        response.error.message
+      );
+    }
+
+    console.log(
+      `Email sent to ${to}`
     );
 
     return response;
@@ -30,6 +42,6 @@ export const sendEmail = async (
       error
     );
 
-      throw error;
+    throw error;
   }
 };

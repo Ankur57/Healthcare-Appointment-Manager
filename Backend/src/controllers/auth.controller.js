@@ -38,6 +38,7 @@ export const register = async (req, res) => {
       user.generateToken();
 
     res.cookie("accessToken", token, cookieOptions);
+    
 
     return res.status(201).json({
       success: true,
@@ -91,8 +92,10 @@ export const login = async (
 
     const token =
       user.generateToken();
+      
 
     res.cookie("accessToken", token, cookieOptions);
+    
 
     return res.status(200).json({
       success: true,

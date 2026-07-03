@@ -10,7 +10,6 @@ function AppointmentCard({
   handleCancel,
 }) {
   if (!appointment) {
-    console.log("Null value is returned ")
     return null;
   }
   return (

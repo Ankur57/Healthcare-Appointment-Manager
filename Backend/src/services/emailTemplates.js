@@ -1,36 +1,125 @@
 export function baseTemplate(title, content) {
   return `
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="en" dir="ltr">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="format-detection" content="telephone=no">
+      <meta name="x-apple-disable-message-reformatting">
       <title>${title}</title>
+
       <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .header { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); padding: 30px 20px; text-align: center; color: white; }
-        .header h1 { margin: 0; font-size: 24px; font-weight: 700; }
-        .content { padding: 30px; color: #374151; line-height: 1.6; }
-        .footer { background-color: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 12px; border-top: 1px solid #e2e8f0; }
-        .card { background-color: #f0fdfa; border: 1px solid #ccfbf1; border-radius: 8px; padding: 20px; margin: 20px 0; }
-        h2 { color: #0f766e; margin-top: 0; }
-        .button { display: inline-block; padding: 12px 24px; background-color: #0d9488; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin-top: 20px; }
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background-color: #f3f4f6;
+          margin: 0;
+          padding: 0;
+        }
+
+        .container {
+          max-width: 600px;
+          margin: 40px auto;
+          background-color: #ffffff;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .header {
+          background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+          padding: 30px 20px;
+          text-align: center;
+          color: white;
+        }
+
+        .header h1 {
+          margin: 0;
+          font-size: 24px;
+          font-weight: 700;
+        }
+
+        .content {
+          padding: 30px;
+          color: #374151;
+          line-height: 1.6;
+        }
+
+        .footer {
+          background-color: #f8fafc;
+          padding: 20px;
+          text-align: center;
+          color: #64748b;
+          font-size: 12px;
+          border-top: 1px solid #e2e8f0;
+        }
+
+        .card {
+          background-color: #f0fdfa;
+          border: 1px solid #ccfbf1;
+          border-radius: 8px;
+          padding: 20px;
+          margin: 20px 0;
+        }
+
+        h2 {
+          color: #0f766e;
+          margin-top: 0;
+        }
+
+        .button {
+          display: inline-block;
+          padding: 12px 24px;
+          background-color: #0d9488;
+          color: white !important;
+          text-decoration: none;
+          border-radius: 6px;
+          font-weight: 600;
+          margin-top: 20px;
+        }
       </style>
     </head>
+
     <body>
+
+      <div
+        style="
+          display:none;
+          max-height:0;
+          overflow:hidden;
+          opacity:0;
+          color:transparent;
+        "
+      >
+        Healthcare appointment notification from MediFlow.
+      </div>
+
       <div class="container">
+
         <div class="header">
           <h1>MediFlow Healthcare</h1>
         </div>
+
         <div class="content">
           ${content}
         </div>
+
         <div class="footer">
-          <p>MediFlow Healthcare · Automated Notification</p>
-          <p>This is an automated email, please do not reply.</p>
+          <p><strong>MediFlow Healthcare</strong></p>
+          <p>Kanpur, Uttar Pradesh, India</p>
+          <p>Support: support@mediflow.com</p>
+          <p>
+            This email contains information regarding your healthcare
+            appointment and account activity.
+          </p>
+          <p>
+            If you were not expecting this email, you may safely ignore it.
+          </p>
         </div>
+
       </div>
+
     </body>
     </html>
   `;
@@ -38,7 +127,7 @@ export function baseTemplate(title, content) {
 
 export function bookingConfirmationPatientEmail({ patientName, doctorName, specialization, date, time, endTime, symptoms, aiSummary, fee, qualification, experience, workingHours }) {
   const content = `
-    <h2>Appointment Confirmed</h2>
+    <h2>Appointment Confirmation - MediFlow</h2>
     <p>Dear ${patientName},</p>
     <p>Your appointment with Dr. ${doctorName} has been successfully confirmed.</p>
     <div class="card">
@@ -205,12 +294,12 @@ export function leaveApprovedAdminEmail({ doctorName, date, affectedCount }) {
     <p>Leave for Dr. ${doctorName} on <strong>${date}</strong> has been approved and recorded.</p>
     <p>Number of appointments cancelled: ${affectedCount}</p>
   `;
-  return { subject: `Leave Approved for Dr. \${doctorName} — MediFlow\`, html: baseTemplate('Leave Approved', content)` };
+  return { subject: `Leave Approved for Dr. ${doctorName} — MediFlow`, html: baseTemplate('Leave Approved', content) };
 }
 
 export function leaveAppointmentCancelledEmail({ patientName, doctorName, date, time }) {
   const content = `
-    <h2>Appointment Cancelled</h2>
+    <h2>Appointment Cancelled - MediFlow</h2>
     <p>Dear ${patientName},</p>
     <p>We apologize, but your appointment with Dr. ${doctorName} on <strong>${date}</strong> at <strong>${time}</strong> has been cancelled as the doctor is unexpectedly on leave.</p>
     <p>Please log in to the portal to rebook your appointment for another date.</p>
@@ -221,7 +310,7 @@ export function leaveAppointmentCancelledEmail({ patientName, doctorName, date, 
 
 export function postVisitPatientEmail({ patientName, doctorName, aiSummary, prescription, notes, medications }) {
   const content = `
-    <h2>Your Consultation Summary</h2>
+    <h2>Consultation Summary - MediFlow</h2>
     <p>Dear ${patientName},</p>
     <p>Your consultation with Dr. ${doctorName} is complete. Here is your post-visit summary.</p>
     
