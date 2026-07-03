@@ -1,6 +1,6 @@
 # API_DOCUMENTATION.md — MediFlow Healthcare Appointment Manager
 
-> Base URL: `http://localhost:5000/api/v1`  
+> Base URL: `http://healthcare-appointment-manager-production-3b9a.up.railway.app/api/v1`  
 > All requests that require authentication must include a valid `accessToken` cookie.  
 > All responses follow the format: `{ success: boolean, message?: string, data? }`
 
@@ -66,7 +66,7 @@ Sets Cookie: `accessToken=<JWT>; HttpOnly`
 
 **Sample cURL:**
 ```bash
-curl -X POST http://localhost:5000/api/v1/auth/register \
+curl -X POST http://healthcare-appointment-manager-production-3b9a.up.railway.app/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"name":"Ankur","email":"ankur@test.com","password":"test1234"}'
 ```
@@ -115,7 +115,7 @@ Sets Cookie: `accessToken=<JWT>; HttpOnly`
 
 **Sample cURL:**
 ```bash
-curl -X POST http://localhost:5000/api/v1/auth/login \
+curl -X POST http://healthcare-appointment-manager-production-3b9a.up.railway.app/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -c cookies.txt \
   -d '{"email":"ankur@test.com","password":"test1234"}'
