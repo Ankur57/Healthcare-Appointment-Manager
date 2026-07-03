@@ -105,7 +105,8 @@ async (req, res) => {
       // Fetch Admins for notifications
       const admins = await User.find({ role: "admin" });
 
-      const patientEmailData = bookingConfirmationPatientEmail({
+      try {
+        const patientEmailData = bookingConfirmationPatientEmail({
         patientName: patient.name,
         doctorName: doctorUser?.name || 'Doctor',
         specialization: doctor.specialization,
@@ -148,6 +149,12 @@ async (req, res) => {
         }
       }
 
+      } catch (error) {
+        console.log(
+          "Patient Email Error:",
+          error
+        );
+      }
       // 4. Create Google Calendar Event
       try {
         const eventId = await createCalendarEvent(
