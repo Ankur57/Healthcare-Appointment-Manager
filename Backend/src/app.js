@@ -11,8 +11,7 @@ import doctorRoutes from "./routes/doctor.routes.js";
 const app = express();
 
 const allowedOrigins = [
-  "https://healthcare-appointment-manager-xi.vercel.app",
-  "https://healthcare-appointment-manager-git-main-ankur57s-projects.vercel.app",
+  "https://hopeful-radiance-production-dce4.up.railway.app"
 ];
 
 app.use(
