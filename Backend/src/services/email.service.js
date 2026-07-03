@@ -1,28 +1,35 @@
-import nodemailer
-from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config();
+import { Resend } from "resend";
 
-const transporter =
-  nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user:
-        process.env.EMAIL_USER,
-      pass:
-        process.env.EMAIL_PASS,
-    },
-  });
+const resend = new Resend(
+  process.env.RESEND_API_KEY
+);
 
-export const sendEmail = async (to, subject, html) => {
+export const sendEmail = async (
+  to,
+  subject,
+  html
+) => {
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to,
-      subject,
-      html,
-    });
+    const response =
+      await resend.emails.send({
+        from: `Healthcare Appointment Manager <${process.env.EMAIL_USER}>`,
+        to,
+        subject,
+        html,
+      });
+
+    console.log(
+      `Email sent to ${to}`,
+      response.id
+    );
+
+    return response;
   } catch (error) {
-    console.log(`Email Service Error for ${to}:`, error.message);
+    console.error(
+      `Email Service Error for ${to}:`,
+      error
+    );
+
+      throw error;
   }
 };
