@@ -275,7 +275,7 @@ GOOGLE_REFRESH_TOKEN=your_google_refresh_token_here
 ### Frontend `.env`
 
 ```env
-VITE_API_URL=https://hopeful-radiance-production-dce4.up.railway.app/api/v1
+VITE_API_URL=https://healthcare-appointment-manager-production-3b9a.up.railway.app/api/v1
 ```
 
 ---
@@ -299,7 +299,7 @@ npm run dev
 ```bash
 cd frontend
 npm run dev
-# Frontend runs at [http://localhost:5174](https://hopeful-radiance-production-dce4.up.railway.app
+# Frontend runs at https://hopeful-radiance-production-dce4.up.railway.app
 ```
 
 ### 4. Seed an Admin User
