@@ -12,7 +12,7 @@ import {sendEmail} from './services/email.service.js'
 const app = express();
 
 const allowedOrigins = [
-  "https://hopeful-radiance-production-dce4.up.railway.app/",
+  "https://hopeful-radiance-production-dce4.up.railway.app",
   "http://localhost:5174"
 ];
 
