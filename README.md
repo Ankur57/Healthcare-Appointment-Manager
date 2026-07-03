@@ -349,6 +349,11 @@ db.users.insertOne({
 
 ## 📸 Screenshots
 
+Home Page 
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/209f0769-a8dc-45ce-937b-6afbe344dbc2" />
+
+
 Patient Dashboard
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c8273007-361b-457a-babd-9f65adf46f51" />
