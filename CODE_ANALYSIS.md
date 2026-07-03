@@ -171,42 +171,7 @@
 
 ---
 
-## 9. Potential Improvements
-
-### Security Improvements
-| Issue | Recommendation | Priority |
-|---|---|---|
-| No rate limiting | Add `express-rate-limit` for login and booking endpoints | 🔴 High |
-| No refresh token rotation | Implement refresh token + short-lived access tokens | 🔴 High |
-| No input sanitization | Add `express-validator` or Zod validation on backend | 🔴 High |
-| Admin seeding is manual | Add a seed script or first-run admin creation flow | 🟡 Medium |
-| `nodemailer` installed but unused | Remove unused dependency | 🟢 Low |
-
-### Architecture Improvements
-| Issue | Recommendation | Priority |
-|---|---|---|
-| Email sent inline (blocking) | Use BullMQ + Redis job queue for async email/AI processing | 🔴 High |
-| No automated tests | Add Jest + Supertest for API testing | 🔴 High |
-| No error monitoring | Integrate Sentry or similar APM | 🟡 Medium |
-| Cron job not distributed-safe | Add Redis-based distributed lock | 🟡 Medium |
-| Hard-coded localhost URL in calendar.service.js | Replace with `process.env.CLIENT_URL` | 🟡 Medium |
-| Medication reminders never expire | Add `expiryDate` field or TTL index | 🟡 Medium |
-
-### Feature Improvements
-| Feature | Description | Priority |
-|---|---|---|
-| Real-time notifications | Socket.IO for live appointment status | 🟡 Medium |
-| Payment integration | Razorpay/Stripe for consultation fees | 🟡 Medium |
-| Refresh token system | Short-lived access tokens + refresh rotation | 🔴 High |
-| Pagination | Paginate appointment/doctor lists for scale | 🟡 Medium |
-| PDF prescription generation | `pdfkit` or `puppeteer` for downloadable prescriptions | 🟢 Low |
-| Patient medical history | Track cumulative health records per patient | 🟢 Low |
-| Doctor ratings & reviews | Allow patients to rate consultations | 🟢 Low |
-| Video consultation | WebRTC integration for telemedicine | 🟢 Low |
-
----
-
-## 10. Code Quality Notes
+## 9. Code Quality Notes
 
 | Observation | Details |
 |---|---|
