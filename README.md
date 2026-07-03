@@ -73,6 +73,8 @@ The system integrates **Google Gemini AI** for intelligent clinical summaries, *
 - [x] Mark doctor leave days (auto-cancels affected appointments)
 - [x] View all system appointments with patient and doctor details
 - [x] Email notifications for all key system events
+- [ ] Admin id - ankurbajpai100@gmail.com
+- [ ] Admin password - 123456
 
 ### 🔒 Security Features
 - [x] JWT Authentication (7-day expiry)
