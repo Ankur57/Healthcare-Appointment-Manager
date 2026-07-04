@@ -43,6 +43,8 @@ This application uses secure cookies for authentication. If third-party cookies 
 
 Please ensure that third-party cookies are enabled for this website before using the application.
 
+> 📧 Note: Appointment and notification emails may occasionally land in your Spam or Promotions folder. Please check those folders if an email is not received in your inbox.
+
 ---
 
 ## ✨ Features
