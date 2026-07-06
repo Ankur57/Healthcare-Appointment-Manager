@@ -115,7 +115,7 @@ sequenceDiagram
     DB-->>API: User document
     API->>API: bcrypt.compare(password, hash)
     API->>API: jwt.sign({_id, role}, JWT_SECRET, {expiresIn: "7d"})
-    API-->>C: Set-Cookie: accessToken=({JWT}); httpOnly
+    API-->>C: Set-Cookie: accessToken=({JWT});
 
     Note over C,MW: Subsequent protected requests
     C->>API: GET /api/v1/auth/me [Cookie: accessToken]
